@@ -113,6 +113,9 @@ impl Ble {
         // get small BLE ID
         let ble_id = Node::get_small_id();
 
+        #[cfg(target_os = "linux")]
+        ble_module::init(Box::new(|sys_msg| Sys::send_to_libqaul(sys_msg)));
+
         // initialize local state
         {
             // create node states
@@ -600,6 +603,7 @@ impl Ble {
             .expect("Vec<u8> provides capacity as needed");
 
         // send the message
+        log::info!("BLE send feed message to {:?}", receiver_small_id.clone());
         Self::message_send(receiver_small_id, sender_id, buf);
     }
 
@@ -687,6 +691,7 @@ impl Ble {
                     Self::module_stop_result(stop_result);
                 }
                 Some(proto::ble::Message::DeviceDiscovered(device)) => {
+                    log::info!("============================BLE device discovered");
                     Self::device_discovered(device);
                 }
                 Some(proto::ble::Message::DeviceUnavailable(device)) => {
